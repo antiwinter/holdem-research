@@ -1,0 +1,12 @@
+{
+  "name": "holdem-equity",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Texas Hold'em equity calculator CLI",
+  "bin": {
+    "holdem-equity": "./index.js"
+  },
+  "dependencies": {
+    "commander": "^12.1.0"
+  }
+}
