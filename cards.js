@@ -7,6 +7,11 @@ const SUIT_IDX = { d: 0, s: 1, c: 2, h: 3 };
 const RANK_CH = '23456789TJQKA';
 const SUIT_CH = 'dsch';
 
+// display: unicode suits on a white background — ♠ ♣ black, ♦ ♥ red
+const chalk = require('chalk');
+const RANK_DISPLAY = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'J', 'Q', 'K', 'A'];
+const SUIT_GLYPH = ['♦', '♠', '♣', '♥']; // ♦ ♠ ♣ ♥, indexed like SUIT_IDX
+
 // Parses rank runs sharing one suit char: "a5d" = Ad 5d, "38s6h" = 3s 8s 6h.
 // Plain rank+suit pairs ("as8d7c") parse identically.
 function parseCards(str, label) {
@@ -25,7 +30,12 @@ function parseCards(str, label) {
   return cards;
 }
 
-const cardStr = (c) => RANK_CH[c >> 2] + SUIT_CH[c & 3];
+const cardStr = (c) => {
+  const s = c & 3;
+  const text = RANK_DISPLAY[c >> 2] + SUIT_GLYPH[s];
+  const ink = s === 1 || s === 2 ? chalk.black : chalk.red; // ♠ ♣ black, ♦ ♥ red
+  return ink.bgWhiteBright(text);
+};
 const cardsStr = (cs) => cs.map(cardStr).join(' ');
 
 module.exports = { RANK_IDX, SUIT_IDX, parseCards, cardStr, cardsStr };
