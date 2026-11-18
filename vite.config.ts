@@ -3,7 +3,11 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
+// GitHub Pages serves at /<repo>/; derive base from GITHUB_REPOSITORY in CI
+const base = process.env.GITHUB_REPOSITORY ? `/${process.env.GITHUB_REPOSITORY.split('/')[1]}/` : '/'
+
 export default defineConfig({
+  base,
   plugins: [
     react(),
     tailwindcss(),
