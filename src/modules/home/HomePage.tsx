@@ -17,7 +17,7 @@ export default function HomePage() {
           className="rounded-2xl border border-slate-800 bg-slate-800/40 px-5 py-4 active:bg-slate-700/60"
         >
           <div className="font-semibold">RFI Chart</div>
-          <div className="text-sm text-slate-400">13×13 open-raise ranges by position</div>
+          <div className="text-sm text-slate-400">13×13 preflop ranges: 3bet &amp; RFI by position</div>
         </Link>
         <Link
           to="/rfi-practice"
@@ -25,7 +25,7 @@ export default function HomePage() {
         >
           <div>
             <div className="font-semibold">RFI Practice</div>
-            <div className="text-sm text-slate-400">Drill range numbers for every hand</div>
+            <div className="text-sm text-slate-400">Drill range membership for every hand</div>
           </div>
           {due > 0 && (
             <span className="rounded-full bg-emerald-500/20 px-2.5 py-1 text-xs font-medium text-emerald-300">

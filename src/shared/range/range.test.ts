@@ -1,69 +1,76 @@
 import { describe, it, expect } from 'vitest'
-import { HAND_RANKING, POSITIONS } from './ranking'
-import { handInfo, positionsFor, ALL_CLASSES, TOTAL_COMBOS, FOLD_TIER } from './range'
-import { classCombos, RANK_CH } from '../cards/cards'
+import { expandToken, parseRange } from './notation'
+import { RANGES } from './ranges'
+import { GRID_CELLS, handInfo, FOLD_TIER, rangeCombos, TOTAL_COMBOS } from './range'
+import { classCombos } from '../cards/cards'
 
-function fullGrid(): Set<string> {
-  const classes = new Set<string>()
-  for (let hi = 12; hi >= 0; hi--)
-    for (let lo = 12; lo >= 0; lo--) {
-      const r1 = RANK_CH[hi]!
-      const r2 = RANK_CH[lo]!
-      if (hi === lo) classes.add(r1 + r2)
-      else if (hi > lo) classes.add(r1 + r2 + 's')
-      else classes.add(r2 + r1 + 'o')
-    }
-  return classes
-}
-
-describe('ranking seed', () => {
-  it('contains each of the 169 classes exactly once', () => {
-    expect(HAND_RANKING.length).toBe(169)
-    expect(new Set(HAND_RANKING).size).toBe(169)
-    expect(new Set(HAND_RANKING)).toEqual(fullGrid())
+describe('expandToken', () => {
+  it('expands pairs', () => {
+    expect(expandToken('AA')).toEqual(['AA'])
+    expect(expandToken('22+')).toHaveLength(13)
+    expect(expandToken('22+')[0]).toBe('22')
+    expect(expandToken('22+')[12]).toBe('AA')
+    expect(expandToken('77-22')).toHaveLength(6)
   })
 
-  it('combo weights sum to 1326', () => {
-    expect(HAND_RANKING.reduce((s, cls) => s + classCombos(cls), 0)).toBe(TOTAL_COMBOS)
+  it('expands suited/offsuit upward within the high-card row', () => {
+    expect(expandToken('ATs+')).toEqual(['ATs', 'AJs', 'AQs', 'AKs'])
+    expect(expandToken('A2s+')).toHaveLength(12)
+    expect(expandToken('AJo+')).toEqual(['AJo', 'AQo', 'AKo'])
+    expect(expandToken('T8s+')).toEqual(['T8s', 'T9s'])
+    expect(expandToken('97s+')).toEqual(['97s', '98s'])
+    expect(expandToken('K2s+')).toHaveLength(11)
   })
 
-  it('anchors: AA tightest, 32o loosest', () => {
-    expect(HAND_RANKING[0]).toBe('AA')
-    expect(HAND_RANKING[168]).toBe('32o')
+  it('expands dash ranges in either direction (ascending output)', () => {
+    expect(expandToken('A5s-A2s')).toEqual(['A2s', 'A3s', 'A4s', 'A5s'])
+    expect(expandToken('A2s-A5s')).toEqual(['A2s', 'A3s', 'A4s', 'A5s'])
+  })
+
+  it('rejects invalid tokens', () => {
+    expect(() => expandToken('AXo')).toThrow()
+    expect(() => expandToken('a5s')).toThrow()
+    expect(() => expandToken('22s')).toThrow()
+    expect(() => expandToken('AQs-KJs')).toThrow()
+    expect(expandToken('AKs+')).toEqual(['AKs'])
   })
 })
 
-describe('derived range info', () => {
-  it('percentiles are monotone and end at 100', () => {
-    let prev = 0
-    for (const cls of ALL_CLASSES) {
-      const p = handInfo(cls).percentile
-      expect(p).toBeGreaterThan(prev)
-      prev = p
-    }
-    expect(prev).toBeCloseTo(100, 6)
+describe('LUT integrity', () => {
+  it('grid covers all 169 classes exactly once', () => {
+    expect(GRID_CELLS).toHaveLength(169)
+    expect(new Set(GRID_CELLS).size).toBe(169)
+    expect(GRID_CELLS.reduce((s, c) => s + classCombos(c), 0)).toBe(TOTAL_COMBOS)
   })
 
-  it('AA percentile is its combo share', () => {
-    expect(handInfo('AA').percentile).toBeCloseTo((6 / 1326) * 100, 6)
-  })
-
-  it('tier matches cutoffs', () => {
-    for (const cls of ALL_CLASSES) {
-      const { percentile, tier } = handInfo(cls)
-      if (tier === FOLD_TIER) {
-        for (const p of POSITIONS) expect(percentile).toBeGreaterThan(p.cutoff)
-        expect(positionsFor(cls)).toEqual([])
-      } else {
-        expect(percentile).toBeLessThanOrEqual(POSITIONS[tier]!.cutoff)
-        if (tier > 0) expect(percentile).toBeGreaterThan(POSITIONS[tier - 1]!.cutoff)
-        expect(positionsFor(cls)).toEqual(POSITIONS.slice(tier).map((p) => p.id))
-      }
+  it('every range parses and its size matches its cutoff', () => {
+    for (const r of RANGES) {
+      const pct = (rangeCombos(r) / TOTAL_COMBOS) * 100
+      expect(Math.abs(pct - r.cutoff), `${r.id}: ${pct.toFixed(2)}% vs cutoff ${r.cutoff}`).toBeLessThan(0.75)
     }
   })
 
-  it('premium hands are opened everywhere, trash nowhere', () => {
-    expect(positionsFor('AA')).toEqual(['UTG', 'MP', 'CO', 'SB', 'BTN'])
-    expect(positionsFor('32o')).toEqual([])
+  it('ranges are ordered by cutoff ascending', () => {
+    const cutoffs = RANGES.map((r) => r.cutoff)
+    expect([...cutoffs].sort((a, b) => a - b)).toEqual(cutoffs)
+  })
+})
+
+describe('membership', () => {
+  it('tightest range wins, membership can be non-contiguous', () => {
+    expect(handInfo('76s').tier).toBe(0) // 3BET contains it, UTG/HJ do not
+    expect(handInfo('76s').ranges).toEqual([0, 3, 4, 5]) // 3BET, CO, SB, BTN
+    expect(handInfo('A5s').tier).toBe(0)
+    expect(handInfo('A7s').tier).toBe(2) // HJ+ via A2s+, not UTG
+    expect(handInfo('AA').tier).toBe(0)
+    expect(handInfo('32o').tier).toBe(FOLD_TIER)
+    expect(handInfo('32o').ranges).toEqual([])
+  })
+
+  it('parseRange unions tokens', () => {
+    const set = parseRange(['JJ+', '76s'])
+    expect(set.size).toBe(5)
+    expect(set.has('JJ')).toBe(true)
+    expect(set.has('76s')).toBe(true)
   })
 })

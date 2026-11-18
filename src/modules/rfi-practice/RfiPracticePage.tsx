@@ -2,9 +2,8 @@ import { useState } from 'react'
 import PageHeader from '../../shared/ui/PageHeader'
 import PlayingCard from '../../shared/cards/PlayingCard'
 import { randomCombo, type Card, type HandClass } from '../../shared/cards/cards'
-import { handInfo, positionsFor, ALL_CLASSES } from '../../shared/range/range'
-import { POSITIONS } from '../../shared/range/ranking'
-import { STEPPED_COLORS } from '../../shared/range/colors'
+import { handInfo, ALL_CLASSES, FOLD_TIER } from '../../shared/range/range'
+import { RANGES } from '../../shared/range/ranges'
 import { dueIds, review } from '../../shared/fsrs/store'
 import type { Grade } from '../../shared/fsrs/scheduler'
 
@@ -29,7 +28,7 @@ export default function RfiPracticePage() {
   const [round, setRound] = useState<Round>(() => startRound(null))
   const [revealed, setRevealed] = useState(false)
   const info = handInfo(round.cls)
-  const opened = positionsFor(round.cls)
+  const answer = info.tier === FOLD_TIER ? 'Fold' : `${RANGES[info.tier]!.id} ${RANGES[info.tier]!.cutoff}%`
   const due = dueIds().length
 
   const grade = (g: Grade) => {
@@ -53,20 +52,20 @@ export default function RfiPracticePage() {
         {revealed ? (
           <div className="flex flex-col items-center gap-3">
             <div className="text-4xl font-bold tracking-tight">
-              {round.cls} <span className="text-slate-400">·</span> {info.percentile.toFixed(1)}%
+              {round.cls} <span className="text-slate-400">·</span> {answer}
             </div>
             <div className="flex gap-1.5">
-              {POSITIONS.map((p, i) => {
-                const on = opened.includes(p.id)
+              {RANGES.map((r, i) => {
+                const on = info.ranges.includes(i)
                 return (
                   <span
-                    key={p.id}
+                    key={r.id}
                     className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
                       on ? 'text-white' : 'bg-slate-800 text-slate-500'
                     }`}
-                    style={on ? { background: STEPPED_COLORS[i] } : undefined}
+                    style={on ? { background: r.color } : undefined}
                   >
-                    {p.id}
+                    {r.id}
                   </span>
                 )
               })}
