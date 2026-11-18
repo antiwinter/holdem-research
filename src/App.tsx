@@ -1,0 +1,18 @@
+import { Routes, Route } from 'react-router'
+import HomePage from './modules/home/HomePage'
+import RfiChartPage from './modules/rfi-chart/RfiChartPage'
+import RfiPracticePage from './modules/rfi-practice/RfiPracticePage'
+import EquityPracticePage from './modules/equity-practice/EquityPracticePage'
+
+export default function App() {
+  return (
+    <div className="safe-area flex min-h-dvh flex-col">
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/rfi-chart" element={<RfiChartPage />} />
+        <Route path="/rfi-practice" element={<RfiPracticePage />} />
+        <Route path="/equity-practice" element={<EquityPracticePage />} />
+      </Routes>
+    </div>
+  )
+}
