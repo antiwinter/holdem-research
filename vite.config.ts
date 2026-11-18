@@ -14,8 +14,8 @@ export default defineConfig({
         name: 'Holdem Research',
         short_name: 'Holdem',
         description: "Texas Hold'em preflop study drills",
-        theme_color: '#0f172a',
-        background_color: '#0f172a',
+        theme_color: '#ffffff',
+        background_color: '#ffffff',
         display: 'standalone',
         icons: [
           { src: 'icons/logo.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },

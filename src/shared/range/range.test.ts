@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { expandToken, parseRange } from './notation'
-import { RANGES } from './ranges'
+import { RANGES, textColorFor } from './ranges'
 import { GRID_CELLS, handInfo, FOLD_TIER, rangeCombos, TOTAL_COMBOS } from './range'
 import { classCombos } from '../cards/cards'
 
@@ -53,6 +53,13 @@ describe('LUT integrity', () => {
   it('ranges are ordered by cutoff ascending', () => {
     const cutoffs = RANGES.map((r) => r.cutoff)
     expect([...cutoffs].sort((a, b) => a - b)).toEqual(cutoffs)
+  })
+
+  it('text color follows background lightness', () => {
+    expect(textColorFor('#d3ddb5')).toBe('#333')
+    expect(textColorFor('#ff9e30')).toBe('#fff')
+    expect(textColorFor('#d53aed')).toBe('#fff')
+    expect(textColorFor('#1bbd31')).toBe('#fff')
   })
 })
 

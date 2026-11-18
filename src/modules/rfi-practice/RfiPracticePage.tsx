@@ -3,7 +3,7 @@ import PageHeader from '../../shared/ui/PageHeader'
 import PlayingCard from '../../shared/cards/PlayingCard'
 import { randomCombo, type Card, type HandClass } from '../../shared/cards/cards'
 import { handInfo, ALL_CLASSES, FOLD_TIER } from '../../shared/range/range'
-import { RANGES } from '../../shared/range/ranges'
+import { RANGES, textColorFor } from '../../shared/range/ranges'
 import { dueIds, review } from '../../shared/fsrs/store'
 import type { Grade } from '../../shared/fsrs/scheduler'
 
@@ -51,8 +51,8 @@ export default function RfiPracticePage() {
         </div>
         {revealed ? (
           <div className="flex flex-col items-center gap-3">
-            <div className="text-4xl font-bold tracking-tight">
-              {round.cls} <span className="text-slate-400">·</span> {answer}
+            <div className="text-4xl font-semibold tracking-tight">
+              {round.cls} <span className="text-slate-300">·</span> {answer}
             </div>
             <div className="flex gap-1.5">
               {RANGES.map((r, i) => {
@@ -60,10 +60,10 @@ export default function RfiPracticePage() {
                 return (
                   <span
                     key={r.id}
-                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
-                      on ? 'text-white' : 'bg-slate-800 text-slate-500'
+                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${
+                      on ? '' : 'bg-slate-100 text-slate-400'
                     }`}
-                    style={on ? { background: r.color } : undefined}
+                    style={on ? { background: r.color, color: textColorFor(r.color) } : undefined}
                   >
                     {r.id}
                   </span>
@@ -72,17 +72,17 @@ export default function RfiPracticePage() {
             </div>
           </div>
         ) : (
-          <div className="text-sm text-slate-500">tap to reveal</div>
+          <div className="text-sm text-slate-400">tap to reveal</div>
         )}
       </button>
       <div className="px-5 pb-6">
-        <div className="pb-3 text-center text-xs text-slate-500">{due} due</div>
+        <div className="pb-3 text-center text-xs text-slate-400">{due} due</div>
         <div className="flex gap-3 [&>*]:flex-1">
           <button
             type="button"
             disabled={!revealed}
             onClick={() => grade('fail')}
-            className="rounded-2xl bg-red-600 py-4 font-semibold text-white disabled:opacity-30"
+            className="rounded-2xl bg-red-600 py-4 font-medium text-white disabled:opacity-30"
           >
             Fail
           </button>
@@ -90,7 +90,7 @@ export default function RfiPracticePage() {
             type="button"
             disabled={!revealed}
             onClick={() => grade('pass')}
-            className="rounded-2xl bg-emerald-600 py-4 font-semibold text-white disabled:opacity-30"
+            className="rounded-2xl bg-emerald-600 py-4 font-medium text-white disabled:opacity-30"
           >
             Pass
           </button>
