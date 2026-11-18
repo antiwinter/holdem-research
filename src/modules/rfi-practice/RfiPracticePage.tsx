@@ -3,7 +3,7 @@ import PageHeader from '../../shared/ui/PageHeader'
 import PlayingCard from '../../shared/cards/PlayingCard'
 import { randomCombo, type Card, type HandClass } from '../../shared/cards/cards'
 import { handInfo, ALL_CLASSES, FOLD_TIER } from '../../shared/range/range'
-import { RANGES, textColorFor } from '../../shared/range/ranges'
+import { RANGES, FOLD_COLOR, FOLD_TEXT_COLOR, textColorFor } from '../../shared/range/ranges'
 import { dueIds, review } from '../../shared/fsrs/store'
 import type { Grade } from '../../shared/fsrs/scheduler'
 
@@ -28,7 +28,8 @@ export default function RfiPracticePage() {
   const [round, setRound] = useState<Round>(() => startRound(null))
   const [revealed, setRevealed] = useState(false)
   const info = handInfo(round.cls)
-  const answer = info.tier === FOLD_TIER ? 'Fold' : `${RANGES[info.tier]!.id} ${RANGES[info.tier]!.cutoff}%`
+  const fold = info.tier === FOLD_TIER
+  const range = fold ? null : RANGES[info.tier]!
   const due = dueIds().length
 
   const grade = (g: Grade) => {
@@ -40,6 +41,7 @@ export default function RfiPracticePage() {
   return (
     <div className="flex flex-1 flex-col">
       <PageHeader title="RFI Practice" />
+      <div className="px-5 pb-1 text-sm text-slate-500">{due} due</div>
       <button
         type="button"
         onClick={() => setRevealed(true)}
@@ -49,50 +51,36 @@ export default function RfiPracticePage() {
           <PlayingCard card={round.combo[0]} />
           <PlayingCard card={round.combo[1]} />
         </div>
-        {revealed ? (
-          <div className="flex flex-col items-center gap-3">
-            <div className="text-4xl font-semibold tracking-tight">
-              {round.cls} <span className="text-slate-300">·</span> {answer}
-            </div>
-            <div className="flex gap-1.5">
-              {RANGES.map((r, i) => {
-                const on = info.ranges.includes(i)
-                return (
-                  <span
-                    key={r.id}
-                    className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-                      on ? '' : 'bg-slate-100 text-slate-400'
-                    }`}
-                    style={on ? { background: r.color, color: textColorFor(r.color) } : undefined}
-                  >
-                    {r.id}
-                  </span>
-                )
-              })}
-            </div>
-          </div>
-        ) : (
-          <div className="text-sm text-slate-400">tap to reveal</div>
+        {revealed && (
+          <span
+            className="rounded-full px-5 py-2 text-xl font-semibold"
+            style={
+              fold
+                ? { background: FOLD_COLOR, color: FOLD_TEXT_COLOR }
+                : { background: range!.color, color: textColorFor(range!.color) }
+            }
+          >
+            {fold ? 'Fold' : `${range!.id} ${range!.cutoff}%`}
+          </span>
         )}
       </button>
       <div className="px-5 pb-6">
-        <div className="pb-3 text-center text-xs text-slate-400">{due} due</div>
         <div className="flex gap-3 [&>*]:flex-1">
           <button
             type="button"
             disabled={!revealed}
             onClick={() => grade('fail')}
-            className="rounded-2xl bg-red-600 py-4 font-medium text-white disabled:opacity-30"
+            className="rounded-full bg-red-600 py-4 font-medium text-white disabled:opacity-30"
           >
-            Fail
+            Again
           </button>
           <button
             type="button"
             disabled={!revealed}
             onClick={() => grade('pass')}
-            className="rounded-2xl bg-emerald-600 py-4 font-medium text-white disabled:opacity-30"
+            className="rounded-full bg-emerald-600 py-4 font-medium text-white disabled:opacity-30"
           >
-            Pass
+            Good
           </button>
         </div>
       </div>
