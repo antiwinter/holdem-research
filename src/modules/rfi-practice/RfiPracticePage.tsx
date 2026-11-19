@@ -76,26 +76,26 @@ export default function RfiPracticePage() {
           )}
         </div>
       </div>
-      <div className="px-5 pb-6">
-        <div className="flex gap-3 [&>*]:flex-1">
-          <button
-            type="button"
-            disabled={!revealed}
-            onClick={() => grade('fail')}
-            className="rounded-full bg-red-100 py-4 font-medium text-red-700 disabled:opacity-30"
-          >
-            Again <span className="font-normal opacity-70">{againIn}</span>
-          </button>
-          <button
-            type="button"
-            disabled={!revealed}
-            onClick={() => grade('pass')}
-            className="rounded-full bg-emerald-100 py-4 font-medium text-emerald-700 disabled:opacity-30"
-          >
-            Good <span className="font-normal opacity-70">{goodIn}</span>
-          </button>
+      {revealed && (
+        <div className="px-5 pb-6">
+          <div className="flex gap-3 [&>*]:flex-1">
+            <button
+              type="button"
+              onClick={() => grade('fail')}
+              className="rounded-full bg-red-100 py-4 font-medium text-red-700"
+            >
+              Again <span className="font-normal opacity-70">{againIn}</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => grade('pass')}
+              className="rounded-full bg-emerald-100 py-4 font-medium text-emerald-700"
+            >
+              Good <span className="font-normal opacity-70">{goodIn}</span>
+            </button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
