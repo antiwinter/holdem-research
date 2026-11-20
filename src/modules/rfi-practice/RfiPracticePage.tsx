@@ -4,7 +4,7 @@ import { useKeys } from '../../shared/ui/useKeys'
 import PlayingCard from '../../shared/cards/PlayingCard'
 import { randomCombo, type Card, type HandClass } from '../../shared/cards/cards'
 import { handInfo, ALL_CLASSES, FOLD_TIER } from '../../shared/range/range'
-import { RANGES, FOLD_COLOR, FOLD_TEXT_COLOR, textColorFor } from '../../shared/range/ranges'
+import { RANGES, TIER_THEMES, FOLD_THEME } from '../../shared/range/ranges'
 import { dueIds, review, undoLast } from '../../shared/fsrs/store'
 import { useCards } from '../../shared/fsrs/useFsrs'
 import { applyGrade, formatInterval, type Grade } from '../../shared/fsrs/scheduler'
@@ -33,6 +33,7 @@ export default function RfiPracticePage() {
   const info = handInfo(round.cls)
   const fold = info.tier === FOLD_TIER
   const range = fold ? null : RANGES[info.tier]!
+  const theme = fold ? FOLD_THEME : TIER_THEMES[info.tier]!
   const due = dueIds().length
   const card = useCards()[round.cls]
   const againIn = formatInterval(applyGrade(card, 'fail').due.getTime() - Date.now())
@@ -95,11 +96,7 @@ export default function RfiPracticePage() {
           {revealed && (
             <span
               className="rounded-full px-5 py-2 text-xl font-semibold"
-              style={
-                fold
-                  ? { background: FOLD_COLOR, color: FOLD_TEXT_COLOR }
-                  : { background: range!.color, color: textColorFor(range!.color) }
-              }
+              style={{ background: theme.bg, color: theme.text }}
             >
               {fold ? 'Fold' : `${range!.id} ${range!.cutoff}%`}
             </span>

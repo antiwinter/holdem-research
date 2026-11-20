@@ -8,6 +8,15 @@ export function isDue(card: Card, now = new Date()): boolean {
   return card.due <= now
 }
 
+export type Maturity = 'unlearned' | 'young' | 'mature'
+
+const MATURE_DAYS = 21 // Anki's mature threshold
+
+export function maturity(card: Card | undefined): Maturity {
+  if (!card) return 'unlearned'
+  return card.scheduled_days >= MATURE_DAYS ? 'mature' : 'young'
+}
+
 export function applyGrade(card: Card | undefined, grade: Grade, now = new Date()): Card {
   const c: Card = card ?? createEmptyCard(now)
   const rating = grade === 'pass' ? Rating.Good : Rating.Again

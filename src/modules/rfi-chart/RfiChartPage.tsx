@@ -1,7 +1,18 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import PageHeader from '../../shared/ui/PageHeader'
 import HandGrid from './HandGrid'
-import { RANGES, FOLD_COLOR } from '../../shared/range/ranges'
+import {
+  RANGES,
+  FOLD_COLOR,
+  FOLD_THEME,
+  cellTheme,
+  type CellTheme,
+  type LegendItem,
+} from '../../shared/range/ranges'
+import { rfiTheme } from '../../shared/range/range'
+import { maturity, type Maturity } from '../../shared/fsrs/scheduler'
+import { useCards } from '../../shared/fsrs/useFsrs'
+import type { HandClass } from '../../shared/cards/cards'
 
 function NotationToggle({ plain, onChange }: { plain: boolean; onChange: (plain: boolean) => void }) {
   return (
@@ -32,12 +43,35 @@ function NotationToggle({ plain, onChange }: { plain: boolean; onChange: (plain:
 
 const NOTATION_KEY = 'rfi-notation-v1'
 
+const rangeColor = (id: string) => RANGES.find((r) => r.id === id)!.color
+
+const MEM_THEMES: Record<Maturity, CellTheme> = {
+  mature: cellTheme(rangeColor('SB')),
+  young: cellTheme(rangeColor('BTN')),
+  unlearned: FOLD_THEME,
+}
+
+const RFI_LEGEND: LegendItem[] = [
+  ...RANGES.map((r) => ({ color: r.color, label: `${r.id} ${r.cutoff}%` })),
+  { color: FOLD_COLOR, label: 'Fold' },
+]
+const MEM_LEGEND: LegendItem[] = [
+  { color: MEM_THEMES.mature.bg, label: 'Mature' },
+  { color: MEM_THEMES.young.bg, label: 'Young' },
+  { color: MEM_THEMES.unlearned.bg, label: 'Unlearned' },
+]
+
 export default function RfiChartPage() {
   const [plain, setPlain] = useState(() => localStorage.getItem(NOTATION_KEY) !== 'classic')
   const toggle = (v: boolean) => {
     setPlain(v)
     localStorage.setItem(NOTATION_KEY, v ? 'plain' : 'classic')
   }
+
+  const [mem, setMem] = useState(false)
+  const cards = useCards()
+  const themeFor = mem ? (cls: HandClass) => MEM_THEMES[maturity(cards[cls])] : rfiTheme
+  const legend = mem ? MEM_LEGEND : RFI_LEGEND
 
   const legendRef = useRef<HTMLDivElement>(null)
   const [legendHeight, setLegendHeight] = useState(0)
@@ -53,23 +87,26 @@ export default function RfiChartPage() {
     <div className="flex flex-1 flex-col">
       <PageHeader title="RFI Chart" right={<NotationToggle plain={plain} onChange={toggle} />} />
       <div className="[container-type:size] flex min-h-0 flex-1 items-center justify-center px-3 py-3">
-        <div className="flex max-w-full flex-col items-center">
-          <HandGrid plain={plain} reserve={legendHeight} />
+        <div
+          className="flex max-w-full select-none flex-col items-center"
+          onPointerDown={() => setMem(true)}
+          onPointerUp={() => setMem(false)}
+          onPointerCancel={() => setMem(false)}
+          onPointerLeave={() => setMem(false)}
+          onContextMenu={(e) => e.preventDefault()}
+        >
+          <HandGrid plain={plain} reserve={legendHeight} themeFor={themeFor} />
           <br/>
           <div
             ref={legendRef}
             className="flex flex-wrap justify-center gap-x-6 gap-y-2.5 px-2 pt-4 pb-4 text-sm text-slate-600"
           >
-            {RANGES.map((r) => (
-              <span key={r.id} className="flex items-center gap-2">
-                <span className="h-4 w-4 rounded-[4px]" style={{ background: r.color }} />
-                {r.id} {r.cutoff}%
+            {legend.map((item) => (
+              <span key={item.label} className="flex items-center gap-2">
+                <span className="h-4 w-4 rounded-[4px]" style={{ background: item.color }} />
+                {item.label}
               </span>
             ))}
-            <span className="flex items-center gap-2">
-              <span className="h-4 w-4 rounded-[4px]" style={{ background: FOLD_COLOR }} />
-              Fold
-            </span>
           </div>
         </div>
       </div>

@@ -1,9 +1,16 @@
-import { GRID_CELLS, GRID_LABELS, handInfo, FOLD_TIER } from '../../shared/range/range'
-import { RANGES, FOLD_COLOR, FOLD_TEXT_COLOR, textColorFor } from '../../shared/range/ranges'
+import { GRID_CELLS, GRID_LABELS } from '../../shared/range/range'
+import type { CellTheme } from '../../shared/range/ranges'
+import type { HandClass } from '../../shared/cards/cards'
 
-const TEXT_COLORS = RANGES.map((r) => textColorFor(r.color))
-
-export default function HandGrid({ plain, reserve = 0 }: { plain: boolean; reserve?: number }) {
+export default function HandGrid({
+  plain,
+  reserve = 0,
+  themeFor,
+}: {
+  plain: boolean
+  reserve?: number
+  themeFor: (cls: HandClass) => CellTheme
+}) {
   return (
     <div
       className="@container grid aspect-square gap-[0.45cqw] rounded-md"
@@ -14,16 +21,12 @@ export default function HandGrid({ plain, reserve = 0 }: { plain: boolean; reser
       }}
     >
       {GRID_CELLS.map((cls, i) => {
-        const info = handInfo(cls)
-        const fold = info.tier === FOLD_TIER
+        const theme = themeFor(cls)
         return (
           <div
             key={cls}
             className="flex items-center justify-center rounded-[0.9cqw] text-[2.4cqw] font-medium"
-            style={{
-              background: fold ? FOLD_COLOR : RANGES[info.tier]!.color,
-              color: fold ? FOLD_TEXT_COLOR : TEXT_COLORS[info.tier]!,
-            }}
+            style={{ background: theme.bg, color: theme.text }}
           >
             {plain ? GRID_LABELS[i] : cls}
           </div>

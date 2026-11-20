@@ -20,6 +20,20 @@ export function textColorFor(hex: string): string {
   return l > 75 ? '#333' : '#fff'
 }
 
+export interface CellTheme {
+  bg: string
+  text: string
+}
+
+export interface LegendItem {
+  color: string
+  label: string
+}
+
+export function cellTheme(bg: string): CellTheme {
+  return { bg, text: textColorFor(bg) }
+}
+
 export const RANGES: readonly RangeDef[] = [
   {
     id: '3BET',
@@ -58,3 +72,6 @@ export const RANGES: readonly RangeDef[] = [
     hands: ['22+', 'A2s+', 'K2s+', 'Q4s+', 'J6s+', 'T6s+', '95s+', '85s+', '75s+', '64s+', '54s', 'A2o+', 'K8o+', 'Q9o+', 'J9o+', 'T9o', '98o'],
   },
 ]
+
+export const TIER_THEMES: readonly CellTheme[] = RANGES.map((r) => cellTheme(r.color))
+export const FOLD_THEME: CellTheme = { bg: FOLD_COLOR, text: FOLD_TEXT_COLOR }

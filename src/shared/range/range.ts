@@ -1,4 +1,4 @@
-import { RANGES, type RangeDef } from './ranges'
+import { RANGES, TIER_THEMES, FOLD_THEME, type RangeDef, type CellTheme } from './ranges'
 import { parseRange } from './notation'
 import { RANK_CH, classCombos, type HandClass } from '../cards/cards'
 
@@ -39,6 +39,11 @@ export const ALL_CLASSES: readonly HandClass[] = GRID_CELLS
 
 export function handInfo(cls: HandClass): HandInfo {
   return byClass.get(cls)!
+}
+
+export function rfiTheme(cls: HandClass): CellTheme {
+  const { tier } = handInfo(cls)
+  return tier === FOLD_TIER ? FOLD_THEME : TIER_THEMES[tier]!
 }
 
 export function rangesFor(cls: HandClass): RangeDef[] {
