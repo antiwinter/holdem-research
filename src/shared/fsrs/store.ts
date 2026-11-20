@@ -20,6 +20,12 @@ function load(): Record<string, Card> {
 
 let cards: Record<string, Card> = load()
 const listeners = new Set<() => void>()
+const undoStack: { id: string; prev: Card | undefined }[] = []
+
+function persist(): void {
+  localStorage.setItem(KEY, JSON.stringify(cards))
+  listeners.forEach((l) => l())
+}
 
 export function getCards(): Readonly<Record<string, Card>> {
   return cards
@@ -31,9 +37,19 @@ export function subscribe(fn: () => void): () => void {
 }
 
 export function review(id: string, grade: Grade): void {
+  undoStack.push({ id, prev: cards[id] })
   cards = { ...cards, [id]: applyGrade(cards[id], grade) }
-  localStorage.setItem(KEY, JSON.stringify(cards))
-  listeners.forEach((l) => l())
+  persist()
+}
+
+export function undoLast(): string | null {
+  const entry = undoStack.pop()
+  if (!entry) return null
+  cards = { ...cards }
+  if (entry.prev) cards[entry.id] = entry.prev
+  else delete cards[entry.id]
+  persist()
+  return entry.id
 }
 
 export function dueIds(now = new Date()): string[] {
