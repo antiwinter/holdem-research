@@ -6,16 +6,17 @@ export const FOLD_TIER = RANGES.length
 export const TOTAL_COMBOS = 1326
 
 // row = high card A..2, col above diagonal suited, below offsuit
-export const GRID_CELLS: readonly HandClass[] = (() => {
-  const cells: HandClass[] = []
-  for (let row = 0; row < 13; row++)
-    for (let col = 0; col < 13; col++) {
-      const r1 = RANK_CH[12 - row]!
-      const r2 = RANK_CH[12 - col]!
-      cells.push(row === col ? r1 + r1 : col > row ? r1 + r2 + 's' : r2 + r1 + 'o')
-    }
-  return cells
-})()
+const cells: HandClass[] = []
+const labels: string[] = []
+for (let row = 0; row < 13; row++)
+  for (let col = 0; col < 13; col++) {
+    const r1 = RANK_CH[12 - row]!
+    const r2 = RANK_CH[12 - col]!
+    cells.push(row === col ? r1 + r1 : col > row ? r1 + r2 + 's' : r2 + r1 + 'o')
+    labels.push(r1 + r2)
+  }
+export const GRID_CELLS: readonly HandClass[] = cells
+export const GRID_LABELS: readonly string[] = labels
 
 export interface HandInfo {
   cls: HandClass

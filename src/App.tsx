@@ -6,7 +6,7 @@ import EquityPracticePage from './modules/equity-practice/EquityPracticePage'
 
 export default function App() {
   return (
-    <div className="safe-area flex min-h-dvh flex-col">
+    <div className="safe-area mx-auto flex h-dvh w-full max-w-[900px] flex-col">
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/rfi-chart" element={<RfiChartPage />} />

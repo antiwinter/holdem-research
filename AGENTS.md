@@ -18,6 +18,7 @@
 2. Treat every state flag as a design cost. Before adding one, check whether
    the state can be derived from an existing object, relationship, or API.
 3. Verify event payloads and client API contracts instead of guessing.
+4. don't do frontend inspection (playwright/screenshoting etc) unless required
 
 # About comments in code
 don't write verbose comments!

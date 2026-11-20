@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest'
 import { expandToken, parseRange } from './notation'
 import { RANGES, textColorFor } from './ranges'
-import { GRID_CELLS, handInfo, FOLD_TIER, rangeCombos, TOTAL_COMBOS } from './range'
+import { GRID_CELLS, GRID_LABELS, handInfo, FOLD_TIER, rangeCombos, TOTAL_COMBOS } from './range'
 import { classCombos } from '../cards/cards'
 
 describe('expandToken', () => {
@@ -41,6 +41,15 @@ describe('LUT integrity', () => {
     expect(GRID_CELLS).toHaveLength(169)
     expect(new Set(GRID_CELLS).size).toBe(169)
     expect(GRID_CELLS.reduce((s, c) => s + classCombos(c), 0)).toBe(TOTAL_COMBOS)
+  })
+
+  it('labels are row rank then col rank, no suit suffix', () => {
+    expect(GRID_LABELS).toHaveLength(169)
+    expect(GRID_LABELS.slice(0, 2)).toEqual(['AA', 'AK'])
+    expect(GRID_LABELS[13]).toBe('KA')
+    expect(GRID_LABELS[14]).toBe('KK')
+    expect(GRID_LABELS[168]).toBe('22')
+    expect(GRID_LABELS.every((l) => /^[AKQJT2-9]{2}$/.test(l))).toBe(true)
   })
 
   it('every range parses and its size matches its cutoff', () => {
