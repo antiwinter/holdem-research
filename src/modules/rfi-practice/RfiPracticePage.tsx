@@ -4,14 +4,22 @@ import { useKeys } from '../../shared/ui/useKeys'
 import PlayingCard from '../../shared/cards/PlayingCard'
 import { randomCombo, type Card, type HandClass } from '../../shared/cards/cards'
 import { handInfo, ALL_CLASSES, FOLD_TIER } from '../../shared/range/range'
-import { RANGES, TIER_THEMES, FOLD_THEME } from '../../shared/range/ranges'
-import { dueIds, review, undoLast } from '../../shared/fsrs/store'
+import { RANGES, TIER_THEMES, FOLD_THEME, rangeColor } from '../../shared/range/ranges'
+import { dueIds, getCards, review, undoLast } from '../../shared/fsrs/store'
 import { useCards } from '../../shared/fsrs/useFsrs'
-import { applyGrade, formatInterval, type Grade } from '../../shared/fsrs/scheduler'
+import { applyGrade, formatInterval, isDue, type Grade } from '../../shared/fsrs/scheduler'
+
+type Kind = 'new' | 'review'
 
 interface Round {
   cls: HandClass
   combo: [Card, Card]
+  kind: Kind
+}
+
+const KINDS: Record<Kind, { label: string; color: string }> = {
+  new: { label: 'new', color: rangeColor('CO') }, // blue
+  review: { label: 'reviewing', color: rangeColor('SB') }, // green
 }
 
 function pickClass(prev: HandClass | null): HandClass {
@@ -23,7 +31,7 @@ function pickClass(prev: HandClass | null): HandClass {
 
 function startRound(prev: HandClass | null): Round {
   const cls = pickClass(prev)
-  return { cls, combo: randomCombo(cls) }
+  return { cls, combo: randomCombo(cls), kind: getCards()[cls] ? 'review' : 'new' }
 }
 
 export default function RfiPracticePage() {
@@ -34,8 +42,17 @@ export default function RfiPracticePage() {
   const fold = info.tier === FOLD_TIER
   const range = fold ? null : RANGES[info.tier]!
   const theme = fold ? FOLD_THEME : TIER_THEMES[info.tier]!
-  const due = dueIds().length
-  const card = useCards()[round.cls]
+  const cards = useCards()
+  const card = cards[round.cls]
+  const kind: Kind = card ? 'review' : 'new'
+  const { label, color } = KINDS[kind]
+  const learned = history.filter((r) => r.kind === 'new').length
+  const unseen = ALL_CLASSES.length - Object.keys(cards).length
+  const detail = card
+    ? isDue(card)
+      ? `${dueIds().length} due`
+      : 'randomly'
+    : `${learned + 1}/${learned + unseen}` // denominator fixed per session
   const againIn = formatInterval(applyGrade(card, 'fail').due.getTime() - Date.now())
   const goodIn = formatInterval(applyGrade(card, 'pass').due.getTime() - Date.now())
 
@@ -77,7 +94,12 @@ export default function RfiPracticePage() {
           ) : undefined
         }
       />
-      <div className="px-5 pb-1 text-sm text-slate-500">{due} due</div>
+      <div className="flex items-center gap-2 px-5 pb-1 text-sm text-slate-500">
+        <span className="font-medium" style={{ color }}>
+          {label}
+        </span>
+        <span>· {detail}</span>
+      </div>
       <div className="relative flex min-h-0 flex-1">
         {revealed ? (
           <>

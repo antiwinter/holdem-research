@@ -6,6 +6,7 @@ import {
   FOLD_COLOR,
   FOLD_THEME,
   cellTheme,
+  rangeColor,
   type CellTheme,
   type LegendItem,
 } from '../../shared/range/ranges'
@@ -42,8 +43,6 @@ function NotationToggle({ plain, onChange }: { plain: boolean; onChange: (plain:
 }
 
 const NOTATION_KEY = 'rfi-notation-v1'
-
-const rangeColor = (id: string) => RANGES.find((r) => r.id === id)!.color
 
 const MEM_THEMES: Record<Maturity, CellTheme> = {
   mature: cellTheme(rangeColor('SB')),

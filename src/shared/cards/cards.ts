@@ -54,13 +54,9 @@ export function randomCombo(cls: HandClass): [Card, Card] {
   const lo = RANK_IDX[cls[1]!.toLowerCase()]!
   const randSuit = () => (Math.random() * 4) | 0
   const s1 = randSuit()
-  if (cls.length === 2) {
-    let s2 = randSuit()
-    while (s2 === s1) s2 = randSuit()
-    return [makeCard(hi, s1), makeCard(hi, s2)]
-  }
-  if (cls[2] === 's') return [makeCard(hi, s1), makeCard(lo, s1)]
-  let s2 = randSuit()
-  while (s2 === s1) s2 = randSuit()
-  return [makeCard(hi, s1), makeCard(lo, s2)]
+  let s2 = s1
+  if (cls[2] !== 's') while (s2 === s1) s2 = randSuit()
+  const hiCard = makeCard(hi, s1)
+  const loCard = makeCard(lo, s2)
+  return Math.random() < 0.5 ? [hiCard, loCard] : [loCard, hiCard]
 }

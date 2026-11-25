@@ -73,5 +73,7 @@ export const RANGES: readonly RangeDef[] = [
   },
 ]
 
+export const rangeColor = (id: string): string => RANGES.find((r) => r.id === id)!.color
+
 export const TIER_THEMES: readonly CellTheme[] = RANGES.map((r) => cellTheme(r.color))
 export const FOLD_THEME: CellTheme = { bg: FOLD_COLOR, text: FOLD_TEXT_COLOR }

@@ -54,6 +54,11 @@ describe('randomCombo', () => {
       }
     }
   })
+
+  it('deals in either order', () => {
+    const firstRanks = new Set(Array.from({ length: 100 }, () => rankOf(randomCombo('AKo')[0]!)))
+    expect(firstRanks).toEqual(new Set([12, 11]))
+  })
 })
 
 describe('encoding', () => {
