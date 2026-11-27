@@ -36,8 +36,9 @@ export function subscribe(fn: () => void): () => void {
   return () => listeners.delete(fn)
 }
 
-export function review(id: string, grade: Grade): void {
+export function review(id: string, grade: Grade, schedule = true): void {
   undoStack.push({ id, prev: cards[id] })
+  if (!schedule) return
   cards = { ...cards, [id]: applyGrade(cards[id], grade) }
   persist()
 }

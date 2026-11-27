@@ -7,31 +7,34 @@ import { handInfo, ALL_CLASSES, FOLD_TIER } from '../../shared/range/range'
 import { RANGES, TIER_THEMES, FOLD_THEME, rangeColor } from '../../shared/range/ranges'
 import { dueIds, getCards, review, undoLast } from '../../shared/fsrs/store'
 import { useCards } from '../../shared/fsrs/useFsrs'
-import { applyGrade, formatInterval, isDue, type Grade } from '../../shared/fsrs/scheduler'
+import { applyGrade, formatInterval, type Grade } from '../../shared/fsrs/scheduler'
 
-type Kind = 'new' | 'review'
+type Mode = 'new' | 'due' | 'random'
 
 interface Round {
   cls: HandClass
   combo: [Card, Card]
-  kind: Kind
+  mode: Mode
 }
 
-const KINDS: Record<Kind, { label: string; color: string }> = {
+const BADGES = {
   new: { label: 'new', color: rangeColor('CO') }, // blue
   review: { label: 'reviewing', color: rangeColor('SB') }, // green
 }
 
-function pickClass(prev: HandClass | null): HandClass {
+function pickClass(prev: HandClass | null): { cls: HandClass; mode: Mode } {
+  const cards = getCards()
   const due = dueIds().filter((id) => id !== prev)
-  if (due.length > 0) return due[0]!
-  const pool = ALL_CLASSES.filter((c) => c !== prev)
-  return pool[Math.floor(Math.random() * pool.length)]!
+  if (due.length > 0) return { cls: due[0]!, mode: 'due' }
+  const unseen = ALL_CLASSES.filter((c) => !cards[c] && c !== prev)
+  const pool = unseen.length > 0 ? unseen : ALL_CLASSES.filter((c) => c !== prev)
+  const cls = pool[Math.floor(Math.random() * pool.length)]!
+  return { cls, mode: unseen.length > 0 ? 'new' : 'random' }
 }
 
 function startRound(prev: HandClass | null): Round {
-  const cls = pickClass(prev)
-  return { cls, combo: randomCombo(cls), kind: getCards()[cls] ? 'review' : 'new' }
+  const { cls, mode } = pickClass(prev)
+  return { cls, combo: randomCombo(cls), mode }
 }
 
 export default function RfiPracticePage() {
@@ -44,21 +47,22 @@ export default function RfiPracticePage() {
   const theme = fold ? FOLD_THEME : TIER_THEMES[info.tier]!
   const cards = useCards()
   const card = cards[round.cls]
-  const kind: Kind = card ? 'review' : 'new'
-  const { label, color } = KINDS[kind]
-  const learned = history.filter((r) => r.kind === 'new').length
+  const { label, color } = round.mode === 'new' ? BADGES.new : BADGES.review
+  const learned = history.filter((r) => r.mode === 'new').length
   const unseen = ALL_CLASSES.length - Object.keys(cards).length
-  const detail = card
-    ? isDue(card)
-      ? `${dueIds().length} due`
-      : 'randomly'
-    : `${learned + 1}/${learned + unseen}` // denominator fixed per session
+  const detail =
+    round.mode === 'new'
+      ? `${learned + 1}/${learned + unseen}` // denominator fixed per session
+      : round.mode === 'due'
+        ? `${dueIds().length} due`
+        : 'randomly'
   const againIn = formatInterval(applyGrade(card, 'fail').due.getTime() - Date.now())
   const goodIn = formatInterval(applyGrade(card, 'pass').due.getTime() - Date.now())
 
   const grade = (g: Grade) => {
     setHistory((h) => [...h, round])
-    review(round.cls, g)
+    // Passes on a not-due card are expected (R ≈ 1), so only a failure there reschedules.
+    review(round.cls, g, round.mode !== 'random' || g === 'fail')
     setRevealed(false)
     setRound(startRound(round.cls))
   }
@@ -140,7 +144,10 @@ export default function RfiPracticePage() {
               onClick={() => grade('pass')}
               className="rounded-full bg-emerald-100 py-4 font-medium text-emerald-700"
             >
-              Good <span className="font-normal opacity-70">{goodIn}</span>
+              Good{' '}
+              {round.mode !== 'random' && (
+                <span className="font-normal opacity-70">{goodIn}</span>
+              )}
             </button>
           </div>
         </div>
