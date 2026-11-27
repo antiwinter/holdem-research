@@ -87,11 +87,14 @@ export default function RfiChartPage() {
       <PageHeader title="RFI Chart" right={<NotationToggle plain={plain} onChange={toggle} />} />
       <div className="[container-type:size] flex min-h-0 flex-1 items-center justify-center px-3 py-3">
         <div
-          className="flex max-w-full select-none flex-col items-center"
-          onPointerDown={() => setMem(true)}
+          className="flex max-w-full touch-none select-none flex-col items-center"
+          onPointerDown={(e) => {
+            // Capture keeps the release targeted at this element even if the finger drifts off.
+            e.currentTarget.setPointerCapture(e.pointerId)
+            setMem(true)
+          }}
           onPointerUp={() => setMem(false)}
           onPointerCancel={() => setMem(false)}
-          onPointerLeave={() => setMem(false)}
           onContextMenu={(e) => e.preventDefault()}
         >
           <HandGrid plain={plain} reserve={legendHeight} themeFor={themeFor} />
