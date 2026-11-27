@@ -41,6 +41,7 @@ export default function HomePage() {
           <span className="rounded-full bg-slate-200 px-2.5 py-1 text-xs text-slate-500">soon</span>
         </div>
       </nav>
+      <div className="mt-auto pb-4 text-center text-xs text-slate-400">v{__APP_VERSION__}</div>
     </div>
   )
 }
